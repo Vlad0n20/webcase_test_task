@@ -26,18 +26,24 @@ services:
       - static_volume:/home/app/web/staticfiles
       - media_volume:/home/app/web/media
     command: [ "sh","./start" ]
-  nginx:
-    build: ./nginx
-    env_file: ./.env
+
+  redis:
+    image: "redis:alpine"
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
     depends_on:
-      - web
-    ports:
-      - "80:80"
+      - db
+      - redis
     volumes:
-      - nginx_conf:/etc/nginx/conf.d
-      - static_volume:/home/app/web/staticfiles
-      - media_volume:/home/app/web/media
-    restart: always
+      - .:/home/app/web
+      - ./media:/home/app/web/media
+
+    command: [ "sh","./start-celery-worker" ]
+
 volumes:
   nginx_conf:
   media_volume:

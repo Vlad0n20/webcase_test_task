@@ -33,6 +33,9 @@ class BaseModel(models.Model, QuerySetExplainMixin):
     def __unicode__(self):
         return f'{self.id}'
 
+    def __str__(self):
+        return f'{self.__class__.__name__} {self.id}'
+
     @classmethod
     def get_fk_field_names(cls):
         return [field.name for field in cls._meta.get_fields() if

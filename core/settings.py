@@ -24,6 +24,18 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'rest_framework',
+    'debug_toolbar',
+    'drf_yasg',
+    'djoser',
+    'django_filters',
+    'faker',
+    'django_celery_beat',
+
+    'apps.cart.apps.CartConfig',
+    'apps.product.apps.ProductConfig',
+    'apps.user.apps.UserConfig',
+
 ]
 
 MIDDLEWARE = [
@@ -34,6 +46,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+
     'abstract.middleware.RequestMiddleware',
 ]
 
@@ -92,6 +107,8 @@ USE_I18N = True
 
 USE_TZ = True
 
+AUTH_USER_MODEL = 'user.User'
+
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
@@ -100,25 +117,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 FIXTURE_DIRS = [BASE_DIR / 'fixtures']
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# if DEBUG:
-#     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# else:
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_HOST = 'smtp.office365.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = config('EMAIl', 'test@gmail.com')
-EMAIL_HOST_PASSWORD = config('EMAIl_PASSWORD', 'test@gmail')
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-DEFAULT_FROM_EMAIL = config('EMAIl', 'test@gmail.com')
 
 import logging.config
 from django.utils.log import DEFAULT_LOGGING
 
-# Disable Django's logging setup
 LOGGING_CONFIG = None
 
 LOGLEVEL = os.environ.get('LOGLEVEL', 'info').upper()
@@ -128,13 +130,11 @@ logging.config.dictConfig({
     'disable_existing_loggers': False,
     'formatters': {
         'default': {
-            # exact format is not important, this is the minimum information
             'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
         },
         'django.server': DEFAULT_LOGGING['formatters']['django.server'],
     },
     'handlers': {
-        # console logs to stderr
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'default',
@@ -142,19 +142,15 @@ logging.config.dictConfig({
         'django.server': DEFAULT_LOGGING['handlers']['django.server'],
     },
     'loggers': {
-        # default for all undefined Python modules
         '': {
             'level': 'WARNING',
             'handlers': ['console'],
         },
-        # Our application code
         'app': {
             'level': LOGLEVEL,
             'handlers': ['console'],
-            # Avoid double logging because of root logger
             'propagate': False,
         },
-        # Default runserver request logging
         'django.server': DEFAULT_LOGGING['loggers']['django.server'],
     },
 })
@@ -176,7 +172,6 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
-        # 'rest_framework.parsers.FormParser',
         'rest_framework.parsers.MultiPartParser',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -206,12 +201,11 @@ SWAGGER_SETTINGS = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/7",
+        "LOCATION": config("REDIS_CACHES", "redis://redis:6379/7"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
-        "KEY_PREFIX": "example",
-        "TIMEOUT": None,
+        "TIMEOUT": 60 * 60 * 24,
     }
 }
 

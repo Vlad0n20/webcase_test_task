@@ -17,7 +17,7 @@ class CategoryDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'description', 'created_at', 'updated_at', 'created_by', 'updated_by']
+        fields = ['id', 'name', 'description', 'created_on', 'updated_on', 'created_by', 'updated_by']
 
 class CategoryCreateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -49,7 +49,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'description', 'price', 'category', 'image', 'created_at', 'updated_at', 'created_by', 'updated_by']
+        fields = ['id', 'name', 'description', 'price', 'category', 'image', 'created_on', 'updated_on', 'created_by', 'updated_by']
 
 class ProductCreateSerializer(serializers.ModelSerializer):
     category_id = serializers.IntegerField()

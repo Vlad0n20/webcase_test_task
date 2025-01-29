@@ -4,7 +4,7 @@ from .models import Cart
 from . import serializers
 
 
-class ProductViewSet(CustomModelViewSet):
+class CartViewSet(CustomModelViewSet):
     queryset = Cart.objects.all()
     serializer_class = serializers.CartListSerializer
 

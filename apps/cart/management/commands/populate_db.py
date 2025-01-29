@@ -1,7 +1,10 @@
+import random
+
 from django.core.management.base import BaseCommand
 
 from apps.cart.factories import CartFactory, CartProductFactory
 from apps.product.factories import ProductFactory, CategoryFactory
+from apps.cart.models import CartProduct
 from apps.product.models import Category, Product
 from apps.user.factories import UserFactory
 
@@ -29,7 +32,12 @@ class Command(BaseCommand):
 
         for _ in range(carts_count):
             cart = CartFactory.create()
+            cart_products = []
             for _ in range(5):
-                CartProductFactory.create(cart=cart, product=Product.objects.order_by('?').first())
-
+                cart_products.append(CartProduct(
+                    cart=cart,
+                    product=Product.objects.order_by('?').first(),
+                    quantity=random.randint(1, 10)
+                ))
+            CartProduct.objects.bulk_create(cart_products)
         self.stdout.write(self.style.SUCCESS('Successfully created users'))

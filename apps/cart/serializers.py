@@ -21,12 +21,12 @@ class CartProductListSerializer(serializers.ModelSerializer):
 class CartProductDetailSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['product'] = ProductDetailSerializer(instance.product).data
+        data['product'] = ProductListSerializer(instance.product).data
         return data
 
     class Meta:
         model = CartProduct
-        fields = ['id', 'cart', 'product', 'quantity']
+        fields = ['id', 'quantity']
 
 class CartListSerializer(serializers.ModelSerializer):
 
@@ -40,17 +40,17 @@ class CartListSerializer(serializers.ModelSerializer):
         fields = ['id', 'created_by']
 
 class CartDetailSerializer(serializers.ModelSerializer):
-    products = CartProductDetailSerializer(many=True)
-
+    # products = CartProductDetailSerializer(many=True)
+    #
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['created_by'] = UserListSerializer(instance.created_by).data
-        data['products'] = CartProductDetailSerializer(instance=instance.products.all(), many=True).data
+        data['products'] = CartProductDetailSerializer(instance=instance.cartproduct_set.all(), many=True).data
         return data
 
     class Meta:
         model = Cart
-        fields = ['id', 'products', 'total_price', 'created_by']
+        fields = ['id', 'total_price', 'created_by']
 
 class CartItemCreateSerializer(serializers.Serializer):
     product = serializers.IntegerField()

@@ -7,11 +7,11 @@ from core.yasg import urlpatterns as doc_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('auth/', include('djoser.urls.jwt')),
 ]
 urlpatterns += doc_urls
 
 if settings.DEBUG:
-    # import debug_toolbar
 
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += [

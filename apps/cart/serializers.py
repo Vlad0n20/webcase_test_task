@@ -29,6 +29,8 @@ class CartProductDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'quantity']
 
 class CartListSerializer(serializers.ModelSerializer):
+    delivery_type = ChoicesField(Cart.DeliveryTypeChoices)
+    payment_type = ChoicesField(Cart.PaymentTypeChoices)
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -37,11 +39,11 @@ class CartListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cart
-        fields = ['id', 'created_by']
+        fields = ['id', 'created_by', 'total_price', 'delivery_type', 'payment_type']
 
 class CartDetailSerializer(serializers.ModelSerializer):
-    # products = CartProductDetailSerializer(many=True)
-    #
+    delivery_type = ChoicesField(Cart.DeliveryTypeChoices)
+    payment_type = ChoicesField(Cart.PaymentTypeChoices)
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['created_by'] = UserListSerializer(instance.created_by).data
@@ -50,7 +52,7 @@ class CartDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cart
-        fields = ['id', 'total_price', 'created_by']
+        fields = ['id', 'total_price', 'created_by', 'delivery_type', 'payment_type']
 
 class CartItemCreateSerializer(serializers.Serializer):
     product = serializers.IntegerField()
@@ -63,8 +65,6 @@ class CartItemCreateSerializer(serializers.Serializer):
 class CartCreateSerializer(serializers.ModelSerializer):
     products = CartItemCreateSerializer(many=True)
     discount_for_each_product = serializers.BooleanField(default=False)
-    delivery_type = ChoicesField(Cart.DeliveryTypeChoices)
-    payment_type = ChoicesField(Cart.PaymentTypeChoices)
     payment_data = serializers.JSONField(default=dict)
     delivery_data = serializers.JSONField(default=dict)
 

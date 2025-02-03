@@ -18,6 +18,8 @@ class ProductViewSet(CustomModelViewSet):
         return super().get_serializer_class()
 
 
+
+
 class CategoryViewSet(CustomModelViewSet):
     queryset = Category.objects.all()
     serializer_class = serializers.CategoryListSerializer

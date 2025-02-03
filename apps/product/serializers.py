@@ -2,6 +2,8 @@ from rest_framework import serializers
 
 from .models import Product, Category
 from apps.user.serializers import UserListSerializer
+from ..cart.models import CartProduct
+
 
 class CategoryListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -59,6 +61,13 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
 class ProductUpdateSerializer(serializers.ModelSerializer):
     category_id = serializers.IntegerField()
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        if 'general_discount' in validated_data:
+            active_carts = instance.carts.filter(status='created').values_list('id', flat=True)
+            CartProduct.objects.filter(cart_id__in=active_carts, product=instance).update(discount=instance.general_discount)
+        return instance
     class Meta:
         model = Product
         fields = ['name', 'description', 'price', 'image', 'category_id']

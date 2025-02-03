@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from django.db import models
 
 from abstract.models import BaseModel, WhoDidIt
@@ -52,22 +50,9 @@ class Cart(BaseModel, WhoDidIt):
     delivery_address = models.CharField(max_length=255, null=True, blank=True)
     payment_type = models.CharField(max_length=255, choices=PaymentTypeChoices.choices)
 
-    def calculate_total_price(self, discount_for_each_product=False, discount_per_product: dict = None):
-        total_price = 0
-        cart_products = self.cartproduct_set.all()
-
-        for cart_product in cart_products:
-            product_price = cart_product.product.price
-            quantity = cart_product.quantity
-            discount = cart_product.discount
-            if discount_for_each_product:
-                discounted_price = product_price * (1 - discount / 100)
-                total_price += discounted_price * quantity
-            else:
-                total_price += product_price * quantity * (1 - discount / 100)
-
-        self.total_price = Decimal(total_price)
-        self.save()
+    # стосовно знижок
+    # Логіка по якій рахується знижка не була чітко визначена, накидав приблизно (через обмеженні в часі)
+    # З фронту приходить, оскілький вона там точно має бути, бо її треба показати користувачу
 
     class Meta:
         verbose_name = 'Cart'

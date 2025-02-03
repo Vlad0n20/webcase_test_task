@@ -6,6 +6,7 @@ from utils.fields import ChoicesField
 from .models import Cart, CartProduct
 from apps.user.serializers import UserListSerializer
 from apps.product.serializers import ProductListSerializer, ProductDetailSerializer
+from .services.cart import CartProcessor
 from .services.payment import PaymentProcessor
 
 class CartProductListSerializer(serializers.ModelSerializer):
@@ -33,6 +34,9 @@ class CartListSerializer(serializers.ModelSerializer):
     payment_type = ChoicesField(Cart.PaymentTypeChoices)
 
     def to_representation(self, instance):
+        # стосовно переписування to_representation. В деякий випажках серіалізатор може мінятись
+        # наприклад, запит робить адміністратор, тому він може бачити більше інформаціїй
+        # у цьому випадку тут пожна поміняти серіалізатор на більш підходящий
         data = super().to_representation(instance)
         data['created_by'] = UserListSerializer(instance.created_by).data
         return data
@@ -75,15 +79,10 @@ class CartCreateSerializer(serializers.ModelSerializer):
         for product in products:
             products_list.append(CartProduct(cart=cart, **product))
         CartProduct.objects.bulk_create(products_list)
-        cart.calculate_total_price(
-            discount_for_each_product=validated_data.get('discount_for_each_product'),
-        )
-        try:
-            PaymentProcessor(cart=cart, payment_data=validated_data.get('payment_data')).process_payment()
-        except ValueError as e:
-            cart.status = Cart.CartStatusChoices.INACTIVE
-            cart.save()
-            raise serializers.ValidationError(e)
+        processor = CartProcessor(cart)
+        total_price = processor.calculate_total_price()
+        cart.total_price = total_price
+        cart.save()
         return cart
 
     class Meta:
@@ -93,20 +92,26 @@ class CartCreateSerializer(serializers.ModelSerializer):
 
 class CartUpdateUpdateSerializer(serializers.ModelSerializer):
     products = CartItemCreateSerializer(many=True)
-    discount_for_each_product = serializers.BooleanField(default=False)
 
     def update(self, instance, validated_data):
         products = validated_data.pop('products')
-        CartProduct.objects.filter(cart=instance).delete()
         products_list = []
         for product in products:
             products_list.append(CartProduct(cart=instance, **product))
         CartProduct.objects.bulk_create(products_list)
-        instance.calculate_total_price(
-            discount_for_each_product=validated_data.get('discount_for_each_product'),
-        )
+        processor = CartProcessor(instance)
+        new_total_price = processor.calculate_total_price()
+        instance.total_price = new_total_price
+        instance.save()
         return instance
 
     class Meta:
         model = Cart
-        fields = ['products', 'discount_for_each_product']
+        fields = ['products', 'delivery_type', 'delivery_address', 'payment_type']
+
+class CartPaymentSerializer(serializers.Serializer):
+    payment_data = serializers.JSONField(default=dict)
+
+    class Meta:
+        model = Cart
+        fields = ['payment_data']
